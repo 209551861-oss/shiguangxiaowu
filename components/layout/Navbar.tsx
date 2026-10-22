@@ -5,14 +5,14 @@ import Link from "next/link";
 import { NAV_LINKS } from "@/lib/constants";
 import MobileNav from "./MobileNav";
 
-export default function Navbar() {
+export default function Navbar({ siteName = "拾光小屋" }: { siteName?: string }) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
       <nav className="glass sticky top-3.5 z-40 mx-auto flex max-w-[1080px] items-center justify-between rounded-pill px-5 py-3 shadow-soft">
         <Link href="/" className="flex items-baseline gap-2">
-          <b className="font-serif text-xl text-forest">拾光小屋</b>
+          <b className="font-serif text-xl text-forest">{siteName}</b>
           <span className="text-xs tracking-[0.28em] text-muted">SHIGUANG</span>
         </Link>
 

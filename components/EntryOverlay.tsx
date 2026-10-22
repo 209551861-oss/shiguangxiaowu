@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
  * 入站遮罩：参考 yayoi「正在打开小屋档案…」+ mrzym 入站结构。
  * 加载条跑完（或点击按钮）后淡出，露出主站。
  */
-export default function EntryOverlay() {
+export default function EntryOverlay({ siteName = "拾光小屋" }: { siteName?: string }) {
   const [hide, setHide] = useState(false);
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function EntryOverlay() {
         拾
       </div>
       <h1 className="mb-3 font-serif text-3xl tracking-[0.18em] text-forest">
-        拾光小屋
+        {siteName}
       </h1>
       <p className="mb-8 text-sm tracking-[0.3em] text-muted">正 在 打 开 档 案 …</p>
       <div className="mb-7 h-1 w-56 overflow-hidden rounded-pill bg-line">
