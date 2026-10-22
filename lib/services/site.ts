@@ -3,7 +3,7 @@
 // 未建表或表为空时也能正常渲染首页（显示默认值，不报错）。
 
 import { createClient } from "@/lib/supabase/server";
-import type { Moment, Note } from "@/types";
+import type { Moment, Note, TimelineEvent } from "@/types";
 
 export interface SiteMeta {
   site_name: string;
@@ -24,7 +24,7 @@ export interface ModuleCounts {
 }
 
 const DEFAULT_META: SiteMeta = {
-  site_name: "拾光事务所",
+  site_name: "拾光小屋",
   site_tagline: "记录学习、创作与生活的数字档案",
   about:
     "一个喜欢把日常拾起来的人。在这里慢慢记录、整理、创作，让时间留下痕迹。",
@@ -159,6 +159,22 @@ export async function getRecentNotes(limit = 3): Promise<Note[]> {
       .order("created_at", { ascending: false })
       .limit(limit);
     return (data ?? []) as Note[];
+  } catch {
+    return [];
+  }
+}
+
+/** 最近公开时间轴节点（首页「时间轴高亮」区块） */
+export async function getRecentTimeline(limit = 4): Promise<TimelineEvent[]> {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("timeline_events")
+      .select("id,title,happened_at,description,icon")
+      .eq("visibility", "public")
+      .order("happened_at", { ascending: false })
+      .limit(limit);
+    return (data ?? []) as TimelineEvent[];
   } catch {
     return [];
   }

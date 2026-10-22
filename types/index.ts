@@ -1,4 +1,4 @@
-// 拾光事务所核心类型定义
+// 拾光小屋核心类型定义
 // 字段名严格对应 Phase 1 落库的 0001_schema.sql 实际列
 
 export type Visibility = "public" | "private" | "draft";

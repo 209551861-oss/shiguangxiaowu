@@ -4,15 +4,17 @@ import PageHeader from "@/components/content/PageHeader";
 import ContentCard from "@/components/content/ContentCard";
 import EmptyState from "@/components/content/EmptyState";
 import CategoryFilter from "@/components/content/CategoryFilter";
+import ModuleSearch from "@/components/content/ModuleSearch";
 import type { Resource } from "@/types";
 
 export default async function LibraryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ cat?: string }>;
+  searchParams: Promise<{ cat?: string; q?: string }>;
 }) {
   const sp = await searchParams;
   const activeSlug = sp.cat?.trim();
+  const q = sp.q?.trim() ?? "";
 
   const categories = await getCategories("library");
   const active = categories.find((c) => c.slug === activeSlug);
@@ -23,6 +25,7 @@ export default async function LibraryPage({
     select: "id,title,description,url,file_type,category_id,created_at",
     limit: 60,
     eq: active ? { category_id: active.id } : undefined,
+    search: q ? { term: q, columns: ["title", "description", "url"] } : undefined,
   });
 
   return (
@@ -32,9 +35,22 @@ export default async function LibraryPage({
         desc="收藏的链接、文档与素材索引，随时取用。"
         count={resources.length}
       />
+      <ModuleSearch
+        basePath="/library"
+        cat={activeSlug}
+        q={q}
+        placeholder="搜索资料标题、描述或链接…"
+      />
       <CategoryFilter categories={categories} activeSlug={activeSlug} basePath="/library" />
       {resources.length === 0 ? (
-        <EmptyState />
+        q ? (
+          <EmptyState
+            text={`没有找到与「${q}」相关的资料`}
+            hint="换个关键词试试，或点上方「清除」查看全部资料。"
+          />
+        ) : (
+          <EmptyState />
+        )
       ) : (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {resources.map((r) => (

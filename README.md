@@ -1,4 +1,4 @@
-# 拾光事务所（ShiGuang Studio）
+# 拾光小屋（ShiGuang Studio）
 
 个人数字档案系统：记录学习、开发、创作、生活与成长。公开与私密并存。
 

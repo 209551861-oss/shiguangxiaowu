@@ -1,4 +1,4 @@
-# 拾光事务所 · Supabase 初始化
+# 拾光小屋 · Supabase 初始化
 
 本目录的 SQL 在 Supabase 控制台执行一次即可完成数据库与存储桶搭建。
 

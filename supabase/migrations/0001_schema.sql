@@ -1,5 +1,5 @@
 -- ============================================================
--- 拾光事务所 · Phase 1 · 数据库初始化（schema + RLS）
+-- 拾光小屋 · Phase 1 · 数据库初始化（schema + RLS）
 -- 适用：Supabase（PostgreSQL 15+）
 -- 用法：Supabase 控制台 → SQL Editor → 全选本文件 → Run
 -- 设计依据：拾光数据库设计文档 V1.0 + 实施方案（已确认决策）
@@ -449,7 +449,7 @@ create policy "settings_owner_write" on public.settings for all to authenticated
 -- 7. 初始站点配置（settings 种子，可改）
 -- ============================================================
 insert into public.settings (key, value) values
-  ('site_name',    '"拾光事务所"'::jsonb),
+  ('site_name',    '"拾光小屋"'::jsonb),
   ('site_tagline', '"记录学习、创作与生活的数字档案"'::jsonb),
   ('social_links', '{"github": "", "weibo": "", "email": ""}'::jsonb)
 on conflict (key) do nothing;

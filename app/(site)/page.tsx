@@ -4,15 +4,21 @@ import Card from "@/components/ui/Card";
 import GlassCard from "@/components/ui/GlassCard";
 import PollenField from "@/components/PollenField";
 import { MODULES } from "@/lib/constants";
-import { getSiteMeta, getModuleCounts, getRecentMoments } from "@/lib/services/site";
+import {
+  getSiteMeta,
+  getModuleCounts,
+  getRecentMoments,
+  getRecentTimeline,
+} from "@/lib/services/site";
 import { formatDate } from "@/utils/format";
 
 export default async function HomePage() {
-  // 服务端并行拉取：站点元信息 / 各模块公开数量 / 最近公开瞬间
-  const [meta, counts, recentMoments] = await Promise.all([
+  // 服务端并行拉取：站点元信息 / 各模块公开数量 / 最近公开瞬间 / 最近时间轴节点
+  const [meta, counts, recentMoments, recentEvents] = await Promise.all([
     getSiteMeta(),
     getModuleCounts(),
     getRecentMoments(4),
+    getRecentTimeline(4),
   ]);
 
   return (
@@ -73,6 +79,59 @@ export default async function HomePage() {
             <Card key={m.href} {...m} />
           ))}
         </div>
+
+        {/* 时间轴高亮 */}
+        <section className="mt-16">
+          <div className="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <h2 className="font-serif text-2xl text-forest">成长时间轴</h2>
+              <p className="mt-1 text-sm text-muted">
+                最近落下的几个节点，串起这段日子的轨迹。
+              </p>
+            </div>
+            <Link
+              href="/timeline"
+              className="shrink-0 text-sm text-leaf transition hover:underline"
+            >
+              查看全部 →
+            </Link>
+          </div>
+
+          {recentEvents.length === 0 ? (
+            <GlassCard className="p-8 text-center text-sm text-muted">
+              还没有公开的时间轴节点。去后台记下第一个吧～
+            </GlassCard>
+          ) : (
+            <GlassCard className="p-6">
+              <div className="relative pl-8">
+                <span
+                  aria-hidden="true"
+                  className="absolute bottom-2 left-[13px] top-2 w-px bg-line"
+                />
+                <div className="flex flex-col gap-6">
+                  {recentEvents.map((e) => (
+                    <div key={e.id} className="relative">
+                      <span className="absolute -left-8 top-0 flex h-8 w-8 items-center justify-center rounded-full bg-pollen text-sm text-forest shadow-press">
+                        {e.icon || "◆"}
+                      </span>
+                      <time className="font-serif text-sm text-leaf">
+                        {formatDate(e.happened_at)}
+                      </time>
+                      <h3 className="mt-0.5 font-serif text-lg text-forest">
+                        {e.title}
+                      </h3>
+                      {e.description && (
+                        <p className="mt-1 line-clamp-2 text-sm leading-7 text-muted">
+                          {e.description}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </GlassCard>
+          )}
+        </section>
 
         {/* 最近瞬间 */}
         <section className="mt-16">

@@ -14,6 +14,8 @@ export interface ListOpts {
   ascending?: boolean;
   /** 额外等值过滤，如 { album_id: 'xxx' } */
   eq?: Record<string, unknown>;
+  /** 模块内子串检索：关键词 + 参与匹配的列（ILIKE 以 OR 连接） */
+  search?: { term: string; columns: string[] };
 }
 
 /** 读取某模块的公开列表（按时间倒序）。 */
@@ -28,6 +30,15 @@ export async function getPublicList<T = Record<string, unknown>>(
       .eq("visibility", "public");
     if (opts.eq) {
       for (const [k, v] of Object.entries(opts.eq)) q = q.eq(k, v);
+    }
+    if (opts.search) {
+      const term = sanitizeQuery(opts.search.term);
+      if (term) {
+        const like = `%${term}%`;
+        q = q.or(
+          opts.search.columns.map((col) => `${col}.ilike.${like}`).join(",")
+        );
+      }
     }
     q = q.order(opts.orderBy ?? "created_at", {
       ascending: opts.ascending ?? false,

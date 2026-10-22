@@ -57,6 +57,13 @@ export default function DashboardSidebar({ email }: { email: string }) {
           <span>🏷️</span>
           <span>分类管理</span>
         </Link>
+        <Link
+          href="/dashboard/settings"
+          className={`${linkBase} ${pathname.startsWith("/dashboard/settings") ? active : idle}`}
+        >
+          <span>⚙️</span>
+          <span>站点设置</span>
+        </Link>
       </nav>
 
       <div className="mt-4 border-t border-line pt-4">

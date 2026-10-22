@@ -64,7 +64,7 @@ export default function LoginPage() {
       }}
     >
       <Link href="/" className="mb-6 flex items-baseline gap-2">
-        <b className="font-serif text-2xl text-forest">拾光事务所</b>
+        <b className="font-serif text-2xl text-forest">拾光小屋</b>
         <span className="text-xs tracking-[0.28em] text-muted">SHIGUANG</span>
       </Link>
 
