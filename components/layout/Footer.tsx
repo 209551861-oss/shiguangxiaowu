@@ -15,6 +15,16 @@ export default function Footer({ siteName = "拾光小屋" }: { siteName?: strin
       <p className="mt-3 text-xs opacity-80">
         基于 Next.js + Supabase 构建 · 内容公开与私密并存
       </p>
+      <p className="mt-2 text-xs opacity-70">
+        <a
+          href="https://beian.miit.gov.cn/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-forest"
+        >
+          粤ICP备2026165105号
+        </a>
+      </p>
     </footer>
   );
 }
