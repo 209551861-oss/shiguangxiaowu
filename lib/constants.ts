@@ -12,6 +12,7 @@ export const NAV_LINKS: NavLink[] = [
   { href: "/library", label: "资料库" },
   { href: "/atelier", label: "创作工坊" },
   { href: "/gallery", label: "相册" },
+  { href: "/play", label: "棋室" },
   { href: "/about", label: "关于" },
 ];
 
