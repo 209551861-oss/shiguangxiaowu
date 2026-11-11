@@ -330,16 +330,14 @@ export default function Xiangqi() {
   };
 
   const undo = () => {
-    setHistory((h) => {
-      if (!h.length) return h;
-      const back = h.length >= 2 ? h.slice(0, -2) : h.slice(0, -1);
-      const prev = back.length ? back[back.length - 1] : START;
-      setBoard(prev);
-      setSide(humanSide);
-      setSel(-1);
-      setMsg("悔一步。");
-      return back;
-    });
+    if (!history.length) return;
+    // 退两步：玩家一步 + 电脑一步。目标局面是「玩家这一步之前」那个
+    const target = history.length >= 2 ? history[history.length - 2] : START;
+    setHistory((h) => (h.length >= 2 ? h.slice(0, -2) : []));
+    setBoard(target);
+    setSide(humanSide);
+    setSel(-1);
+    setMsg("悔一步。");
   };
 
   const reset = (s: Side) => {

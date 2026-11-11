@@ -217,15 +217,14 @@ export default function Go9() {
   };
 
   const undo = () => {
-    setHistory((h) => {
-      if (!h.length) return h;
-      const back = h.length >= 2 ? h.slice(0, -2) : h.slice(0, -1);
-      setBoard(back.length ? back[back.length - 1] : (new Array(NN).fill(0) as Board));
-      setSide(human);
-      setLast(-1);
-      setMsg("悔一步。");
-      return back;
-    });
+    if (!history.length) return;
+    const empty = new Array(NN).fill(0) as Board;
+    const target = history.length >= 2 ? history[history.length - 2] : empty;
+    setHistory((h) => (h.length >= 2 ? h.slice(0, -2) : []));
+    setBoard(target);
+    setSide(human);
+    setLast(-1);
+    setMsg("悔一步。");
   };
 
   const reset = (s: Stone) => {

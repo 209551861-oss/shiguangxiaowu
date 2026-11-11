@@ -369,16 +369,14 @@ export default function Chess() {
   };
 
   const undo = () => {
-    setHistory((h) => {
-      if (!h.length) return h;
-      const back = h.length >= 2 ? h.slice(0, -2) : h.slice(0, -1);
-      setState(back.length ? back[back.length - 1] : INITIAL);
-      setKeys((ks) => ks.slice(0, Math.max(0, ks.length - 1)));
-      setSel(-1);
-      setLastMove(null);
-      setMsg("悔一步。");
-      return back;
-    });
+    if (!history.length) return;
+    const target = history.length >= 2 ? history[history.length - 2] : INITIAL;
+    setHistory((h) => (h.length >= 2 ? h.slice(0, -2) : []));
+    setState(target);
+    setKeys((ks) => ks.slice(0, Math.max(0, ks.length - 1)));
+    setSel(-1);
+    setLastMove(null);
+    setMsg("悔一步。");
   };
 
   const reset = (s: Color) => {
