@@ -72,9 +72,9 @@ export default async function HomePage() {
           档案馆导览
         </h2>
         <p className="mb-8 text-center text-sm tracking-[0.1em] text-muted">
-          八个模块，覆盖记录与创作的每一面
+          九个模块，覆盖记录与创作的每一面
         </p>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-3">
           {MODULES.map((m) => (
             <Card key={m.href} {...m} />
           ))}

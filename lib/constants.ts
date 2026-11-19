@@ -10,16 +10,18 @@ export const NAV_LINKS: NavLink[] = [
   { href: "/", label: "首页" },
   { href: "/notes", label: "学习档案" },
   { href: "/library", label: "资料库" },
+  { href: "/studio", label: "画室" },
   { href: "/atelier", label: "创作工坊" },
   { href: "/gallery", label: "相册" },
   { href: "/play", label: "棋室" },
   { href: "/about", label: "关于" },
 ];
 
-// 八大模块（见《前端页面结构设计稿》）
+// 九大模块（原八大模块 + 2026-11 新增「画室」）
 export const MODULES: Module[] = [
   { href: "/notes", icon: "📖", title: "学习档案", desc: "课程、读书、技术笔记的分类沉淀" },
   { href: "/library", icon: "🗂️", title: "资料库", desc: "收藏的链接、文档与素材索引" },
+  { href: "/studio", icon: "🖌️", title: "画室", desc: "绘画课程地图、示范与验收标准" },
   { href: "/atelier", icon: "🎨", title: "创作工坊", desc: "绘画与作品的原稿与过程记录" },
   { href: "/gallery", icon: "🖼️", title: "生活相册", desc: "按相册归档的影像记忆" },
   { href: "/moments", icon: "✨", title: "瞬间记录", desc: "一句话、一张图的即时光阴" },
