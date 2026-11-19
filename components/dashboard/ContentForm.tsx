@@ -11,6 +11,7 @@ import {
 } from "@/lib/content-config";
 import ImageField from "./ImageField";
 import PhotosField from "./PhotosField";
+import MarkdownEditor from "./MarkdownEditor";
 
 const inputCls =
   "w-full rounded-xl border border-line bg-paper/80 px-3 py-2 text-ink outline-none placeholder:text-muted focus:border-leaf";
@@ -154,14 +155,21 @@ export default function ContentForm({
           />
         );
       case "textarea":
-      case "markdown":
         return (
           <textarea
             value={(val as string) ?? ""}
             onChange={(e) => set(f.name, e.target.value)}
             placeholder={f.placeholder}
-            rows={f.type === "markdown" ? 10 : 4}
+            rows={4}
             className={inputCls}
+          />
+        );
+      case "markdown":
+        return (
+          <MarkdownEditor
+            value={(val as string) ?? ""}
+            onChange={(v) => set(f.name, v)}
+            placeholder={f.placeholder ?? "支持 Markdown 书写…"}
           />
         );
       case "date":
