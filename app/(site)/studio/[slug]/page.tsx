@@ -4,9 +4,9 @@ import MarkdownViewer from "@/components/MarkdownViewer";
 import SphereFigure from "@/components/studio/SphereFigure";
 import {
   STUDIO_STAGE,
-  STUDIO_MODULE,
   STUDIO_LESSONS,
   getStudioLesson,
+  getStudioModule,
   lessonMinutes,
   type StudioSection,
 } from "@/lib/studio/curriculum";
@@ -72,6 +72,8 @@ export default async function LessonPage({
   const { slug } = await params;
   const lesson = getStudioLesson(slug);
   if (!lesson) notFound();
+  const module = getStudioModule(lesson.moduleCode);
+  const acceptanceSection = lesson.sections.find((s) => s.label.includes("验收"));
 
   return (
     <div className="mx-auto max-w-[1080px] px-5 pb-16 pt-20">
@@ -83,7 +85,7 @@ export default async function LessonPage({
         <span>/</span>
         <span>{STUDIO_STAGE.code} {STUDIO_STAGE.name}</span>
         <span>/</span>
-        <span>{STUDIO_MODULE.code} {STUDIO_MODULE.name}</span>
+        <span>{module ? `${module.code} ${module.name}` : lesson.moduleCode}</span>
         <span>/</span>
         <span className="text-ink">{lesson.unitName}</span>
       </nav>
@@ -169,18 +171,18 @@ export default async function LessonPage({
           </div>
 
           <div className="rounded-2xl border border-line bg-paper p-5 shadow-soft">
-            <p className="text-xs tracking-[0.2em] text-muted">验收底线</p>
-            <ul className="mt-2 space-y-1.5 text-sm leading-6 text-muted">
-              <li>· 形体：接近正圆，无形变</li>
-              <li>· 分区：五大调子位置可指认</li>
-              <li>· 交界线：距内侧 15–30%</li>
-            </ul>
-            <a
-              href="#acceptance"
-              className="mt-3 inline-block text-xs text-leaf underline decoration-line underline-offset-4 hover:text-forest"
-            >
-              看完整验收标准
-            </a>
+            <p className="text-xs tracking-[0.2em] text-muted">验收标准</p>
+            <p className="mt-2 text-sm leading-7 text-muted">
+              本节按「验收标准」逐条自查：达标条件是清单，不是分数。
+            </p>
+            {acceptanceSection && (
+              <a
+                href={`#${acceptanceSection.key}`}
+                className="mt-3 inline-block text-xs text-leaf underline decoration-line underline-offset-4 hover:text-forest"
+              >
+                看完整验收标准
+              </a>
+            )}
           </div>
 
           <div className="rounded-2xl border border-line bg-paper p-5 shadow-soft">
