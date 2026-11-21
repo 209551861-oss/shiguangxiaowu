@@ -5,6 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * 后台鉴权中间件：
  * - 未登录访问 /dashboard 任意子路由（除 /dashboard/login）→ 跳转登录页
  * - 已登录访问 /dashboard/login → 直接进后台
+ * - 未登录访问 /library 及其子路径 → 跳转登录页（带 next 回跳）
  * 同时负责刷新 Supabase 会话 cookie，保证 SSR 拿到最新会话。
  */
 export async function middleware(request: NextRequest) {
@@ -42,18 +43,26 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
+  const { pathname, search } = request.nextUrl;
   const isLogin = pathname === "/dashboard/login";
+  const isLibrary = pathname === "/library" || pathname.startsWith("/library/");
 
   if (!user && !isLogin) {
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard/login";
+    // 资料库是私人内容：跳登录并记住原地址，登录后自动回来
+    if (isLibrary) {
+      url.pathname = "/dashboard/login";
+      url.search = `?next=${encodeURIComponent(pathname + search)}`;
+    } else {
+      url.pathname = "/dashboard/login";
+    }
     return NextResponse.redirect(url);
   }
 
   if (user && isLogin) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
+    url.search = "";
     return NextResponse.redirect(url);
   }
 
@@ -61,5 +70,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/dashboard/:path*", "/library", "/library/:path*"],
 };
