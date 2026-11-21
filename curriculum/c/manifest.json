@@ -1,0 +1,666 @@
+{
+  "subject": "c",
+  "title": "C 语言 · 第一册",
+  "version": "v1",
+  "chapters": [
+    {
+      "slug": "ch01-hello",
+      "ordinal": 1,
+      "title": "从源码到程序",
+      "summary": "先把工具链跑通，再理解语法。这一章结束时你应该能独立写出带输入输出的完整程序，并且看得懂编译器报的错。",
+      "sections": [
+        {
+          "slug": "c01-01-first-program",
+          "ordinal": 1,
+          "title": "第一个 C 程序：编译、运行、报错怎么读",
+          "est_minutes": 50,
+          "content_version": "v1",
+          "goals": [
+            "能独立写出 hello.c，用 gcc 编译并运行",
+            "能说清 #include、int main、return 0 各自的作用",
+            "遇到编译错误时，能定位到行号并判断属于语法、链接还是运行时问题"
+          ],
+          "key_points": [
+            "#include <stdio.h> 是预处理指令，为 printf 提供声明",
+            "int main(void) 是程序入口，返回值告诉操作系统是否正常结束",
+            "编译错误读法：文件名:行号:列号: 错误类型: 描述，只看第一行",
+            "undefined reference 是链接错误，通常缺库（如 -lm）",
+            "中文标点会导致 stray '\\357' 这类错误"
+          ],
+          "examples": [
+            {
+              "title": "最小可运行程序",
+              "runnable": true,
+              "code": "#include <stdio.h>\n\nint main(void) {\n    printf(\"hello, c\\n\");\n    return 0;\n}\n\n// 编译：gcc hello.c -o hello\n// 运行：./hello"
+            }
+          ],
+          "exercises": [
+            {
+              "prompt": "把 hello.c 里的字符串改成你自己的名字，编译运行，确认输出正确。",
+              "hint": "只改引号里的内容，别动分号和双引号本身。",
+              "answer": "改 printf(\"hello, c\\n\") 为 printf(\"hello, 宁雪\\n\")，重新 gcc 编译后运行，屏幕应输出 hello, 宁雪。"
+            },
+            {
+              "prompt": "故意删掉第 4 行末尾的分号，重新编译，把报错信息抄下来，指出错误发生在第几行。",
+              "hint": "gcc 会报 expected ';' before 'return'，注意它指向的行号是多少。",
+              "answer": "报错形如 hello.c:4:22: error: expected ';' before 'return'，说明编译器在第 4 行末尾发现缺分号；补回分号即可通过。"
+            }
+          ],
+          "acceptance": "不用看资料，从空白文件写出 hello.c 并成功编译运行；给一段报错信息，能说出是编译错误还是链接错误。"
+        },
+        {
+          "slug": "c01-02-variables-types",
+          "ordinal": 2,
+          "title": "变量、类型与初始化",
+          "est_minutes": 45,
+          "content_version": "v1",
+          "goals": [
+            "能根据数据特点选对类型（int / double / char）",
+            "理解「声明」和「初始化」的区别，知道为什么局部变量必须初始化",
+            "能识别并修正整数除法的精度问题"
+          ],
+          "key_points": [
+            "类型决定占几个字节、比特怎么解释，不是单纯的标签",
+            "int a; 之后内容是垃圾值，int a = 0; 才是安全的",
+            "整数除以整数结果还是整数，小数部分直接丢弃",
+            "double c = a / b 在 a、b 都是 int 时先算整数除法再转换，已晚",
+            "用 sizeof 让程序自己报告类型大小，不要背平台差异"
+          ],
+          "examples": [
+            {
+              "title": "整数除法的陷阱与修正",
+              "runnable": true,
+              "code": "#include <stdio.h>\n\nint main(void) {\n    int a = 5, b = 2;\n    printf(\"错：%f\\n\", a / b);        // 2.000000\n    printf(\"对：%f\\n\", (double)a / b); // 2.500000\n    printf(\"对：%f\\n\", a / 2.0);       // 2.500000\n    return 0;\n}"
+            }
+          ],
+          "exercises": [
+            {
+              "prompt": "读三个整数成绩，输出平均分，保留两位小数。要求平均分正确（不能用整数除法）。",
+              "hint": "先求和（int 可以），再在除法时把其中一个操作数转成 double。",
+              "answer": "double avg = (double)(s1 + s2 + s3) / 3; 然后用 printf(\"%.2f\", avg) 输出。"
+            },
+            {
+              "prompt": "写程序打印 int、double、char 在本机的字节数，并解释为什么 char 是 1 字节而不是「1 个字符」。",
+              "hint": "用 sizeof 和 %zu。char 存的是字符的编码值，不是字形。",
+              "answer": "输出 int:4 double:8 char:1。char 占 1 字节是因为它存的是字符的 ASCII 编码（0-127），本质是小整数。"
+            }
+          ],
+          "acceptance": "给一段「求平均分」的代码，能在 30 秒内指出是否踩了整数除法的坑；能解释 int a; 和 int a = 0; 的差别。"
+        },
+        {
+          "slug": "c01-03-io",
+          "ordinal": 3,
+          "title": "输入与输出：printf 与 scanf",
+          "est_minutes": 50,
+          "content_version": "v1",
+          "goals": [
+            "能正确使用格式符，知道 printf 用 %f 而 scanf 读 double 必须用 %lf",
+            "理解 scanf 为什么需要 &，以及字符数组为什么不需要",
+            "能检查 scanf 返回值，避免带着错误数据继续跑"
+          ],
+          "key_points": [
+            "printf 里 float 会被提升为 double，统一写 %f 即可",
+            "scanf 读 double 必须用 %lf，用 %f 会写坏内存",
+            "scanf 需要变量地址，漏 & 轻则崩溃重则改坏别的变量",
+            "读字符串必须带宽度限制（%31s），否则溢出",
+            "scanf(\" %c\") 前面那个空格用于跳过残留的换行符",
+            "scanf 返回成功赋值的个数，用它做输入校验"
+          ],
+          "examples": [
+            {
+              "title": "带输入校验的求和",
+              "runnable": true,
+              "code": "#include <stdio.h>\n\nint main(void) {\n    double a, b;\n    printf(\"输入两个数：\");\n    if (scanf(\"%lf %lf\", &a, &b) != 2) {\n        printf(\"输入格式不对\\n\");\n        return 1;\n    }\n    printf(\"%.2f + %.2f = %.2f\\n\", a, b, a + b);\n    return 0;\n}"
+            }
+          ],
+          "exercises": [
+            {
+              "prompt": "写程序读入姓名（不超过 20 个字符）和年龄，输出「某某今年 N 岁」。",
+              "hint": "字符串用 %20s，注意数组要给 \\0 留位置。",
+              "answer": "char name[21]; int age; scanf(\"%20s %d\", name, &age); printf(\"%s 今年 %d 岁\\n\", name, age);"
+            },
+            {
+              "prompt": "故意把 scanf 里的 &age 写成 age，编译运行观察现象，然后解释原因。",
+              "hint": "程序可能崩溃，也可能没崩但 age 是垃圾值。",
+              "answer": "scanf 会把读到的整数写到「age 的值所表示的地址」，而不是 age 本身。age 未初始化时是随机地址，通常段错误；偶尔不崩但值错误。"
+            }
+          ],
+          "acceptance": "能默写「读两个 double 并输出和」的完整程序，格式符和 & 都不出错；能解释为什么读 double 用 %lf 而打印用 %f。"
+        },
+        {
+          "slug": "c01-04-operators",
+          "ordinal": 4,
+          "title": "运算符、优先级与常见陷阱",
+          "est_minutes": 45,
+          "content_version": "v1",
+          "goals": [
+            "能正确使用算术、比较、逻辑运算符，不再混淆 = 和 ==",
+            "能说出 && 和 || 的短路规则，并利用它做安全判断",
+            "知道浮点数不能用 == 比较，会用差值判断"
+          ],
+          "key_points": [
+            "整数除法向零截断，-7/2 得 -3 不是 -4",
+            "同一表达式里对同一变量多次自增属于未定义行为",
+            "if (x = 5) 是赋值，恒为真；常量写左边可让编译器报错",
+            "p != NULL && p->value 顺序不能反，靠短路保证安全",
+            "比较运算优先级高于位运算，a & 1 == 0 要加括号",
+            "浮点比较用 fabs(a - b) < 1e-9"
+          ],
+          "examples": [
+            {
+              "title": "短路求值保护空指针",
+              "runnable": true,
+              "code": "#include <stdio.h>\n\nint main(void) {\n    int *p = NULL;\n    if (p != NULL && *p > 0) {\n        printf(\"有值\\n\");\n    } else {\n        printf(\"p 为空，安全跳过\\n\");\n    }\n    return 0;\n}"
+            }
+          ],
+          "exercises": [
+            {
+              "prompt": "写一个判断闰年的程序：能被 4 整除且不能被 100 整除，或者能被 400 整除。",
+              "hint": "用 && 和 || 组合，注意括号。",
+              "answer": "int leap = (year % 4 == 0 && year % 100 != 0) || year % 400 == 0;"
+            },
+            {
+              "prompt": "计算 0.1 + 0.2，用 == 0.3 判断并打印结果，然后改成差值判断。",
+              "hint": "需要 #include <math.h> 和 -lm。",
+              "answer": "0.1+0.2 与 0.3 直接比较通常为假；改成 fabs((0.1+0.2) - 0.3) < 1e-9 后为真。"
+            }
+          ],
+          "acceptance": "能说出四个必记陷阱（整数除法、= 与 ==、优先级加括号、浮点比较）；给一行混合运算能判断是否需要加括号。"
+        }
+      ]
+    },
+    {
+      "slug": "ch02-flow",
+      "ordinal": 2,
+      "title": "流程控制",
+      "summary": "让程序会判断、会重复。这一章的重点不是语法，而是边界：分级顺序、循环次数、越界与死循环。",
+      "sections": [
+        {
+          "slug": "c02-01-if-else",
+          "ordinal": 1,
+          "title": "条件分支：if / else / else if",
+          "est_minutes": 45,
+          "content_version": "v1",
+          "goals": [
+            "能写出正确的多级分级逻辑（成绩等级、区间判断）",
+            "能说清 else if 链「自上而下、命中即停」的语义",
+            "能用卫语句把多层嵌套压平"
+          ],
+          "key_points": [
+            "C 没有 boolean 类型，条件本质是整数，非 0 即真",
+            "else if 条件必须从严到宽排列，否则宽条件会截胡",
+            "省略大括号时缩进不改变语义，只有大括号改变",
+            "else 永远匹配最近的未配对 if（悬空 else）",
+            "嵌套超过两层就该用卫语句提前 return"
+          ],
+          "examples": [
+            {
+              "title": "成绩分级（先校验再分支）",
+              "runnable": true,
+              "code": "#include <stdio.h>\n\nint main(void) {\n    int score;\n    if (scanf(\"%d\", &score) != 1) return 1;\n    if (score < 0 || score > 100) {\n        printf(\"成绩必须在 0-100\\n\");\n        return 1;\n    }\n    char g;\n    if (score >= 90) g = 'A';\n    else if (score >= 80) g = 'B';\n    else if (score >= 70) g = 'C';\n    else if (score >= 60) g = 'D';\n    else g = 'F';\n    printf(\"%c\\n\", g);\n    return 0;\n}"
+            }
+          ],
+          "exercises": [
+            {
+              "prompt": "写程序判断一个整数属于哪个区间：负数、0、1-99、100 及以上，四个分支各输出一句。",
+              "hint": "分支顺序不影响正确性，但要保证互斥。",
+              "answer": "if (n < 0) ... else if (n == 0) ... else if (n < 100) ... else ..."
+            },
+            {
+              "prompt": "把一段三层嵌套的 if 改写成卫语句版本，比较两者行数与可读性。",
+              "hint": "把「不满足条件就退出」的情况提前 return。",
+              "answer": "每层把异常分支提到前面 return，主逻辑留在最后，嵌套层数从 3 降到 1，且每个条件独立可读。"
+            }
+          ],
+          "acceptance": "能一眼看出 else if 顺序写反的分级代码；能手写成绩分级且边界值（90/89/60/59）全部正确。"
+        },
+        {
+          "slug": "c02-02-switch",
+          "ordinal": 2,
+          "title": "switch：多值分支与穿透",
+          "est_minutes": 40,
+          "content_version": "v1",
+          "goals": [
+            "能用 switch 写出菜单与多值判断，不漏 break",
+            "能区分「故意穿透共享逻辑」和「漏写 break」",
+            "知道 switch 只接受整型常量，浮点和字符串不行"
+          ],
+          "key_points": [
+            "case 标签必须是编译期整型常量，不能是变量",
+            "漏 break 会穿透到下一个 case 继续执行",
+            "空 case 连续排列是共享逻辑，合法且常见",
+            "default 建议保留，否则非法输入静默无输出",
+            "用枚举代替 case 1/2/3 的数字魔法"
+          ],
+          "examples": [
+            {
+              "title": "简易计算器",
+              "runnable": true,
+              "code": "#include <stdio.h>\n\nint main(void) {\n    double a, b; char op;\n    if (scanf(\"%lf %c %lf\", &a, &op, &b) != 3) return 1;\n    switch (op) {\n        case '+': printf(\"%.2f\\n\", a + b); break;\n        case '-': printf(\"%.2f\\n\", a - b); break;\n        case '*': printf(\"%.2f\\n\", a * b); break;\n        case '/':\n            if (b == 0.0) printf(\"除数不能为 0\\n\");\n            else printf(\"%.2f\\n\", a / b);\n            break;\n        default: printf(\"不支持的运算符\\n\"); break;\n    }\n    return 0;\n}"
+            }
+          ],
+          "exercises": [
+            {
+              "prompt": "用 switch 写月份天数判断，2 月按 28 天，4/6/9/11 月 30 天，其余 31 天。",
+              "hint": "多个 case 可以共享一段逻辑，中间不写 break。",
+              "answer": "case 4: case 6: case 9: case 11: days = 30; break; case 2: days = 28; break; default: days = 31;"
+            },
+            {
+              "prompt": "故意删掉某个 case 的 break，输入对应值，观察输出并解释。",
+              "hint": "会看到两个分支的结果都打印了。",
+              "answer": "执行完该 case 后没有跳出 switch，继续执行下一个 case 的语句，直到遇到 break 或结束，这就是穿透。"
+            }
+          ],
+          "acceptance": "能给出一段 switch 代码指出所有漏 break 的位置；能写出共享多个 case 的月份天数判断。"
+        },
+        {
+          "slug": "c02-03-loops",
+          "ordinal": 3,
+          "title": "循环：while、do-while、for",
+          "est_minutes": 50,
+          "content_version": "v1",
+          "goals": [
+            "能根据场景选对循环类型（次数已知/未知/至少一次）",
+            "能正确使用 break 与 continue，并知道 break 只跳一层",
+            "能把 for 展开成 while 来推理"
+          ],
+          "key_points": [
+            "while 先判断后执行，do-while 先执行后判断且结尾必须带分号",
+            "for 只是把 while 的三段控制收纳到一行，语义等价",
+            "break 跳出整个循环，continue 只跳过本轮",
+            "嵌套循环里 break 只跳内层，要跳多层用标志变量或 return",
+            "循环变量在 for 内声明时作用域仅限循环"
+          ],
+          "examples": [
+            {
+              "title": "判断素数（循环到 sqrt(n)）",
+              "runnable": true,
+              "code": "#include <stdio.h>\n#include <math.h>\n\nint main(void) {\n    int n;\n    if (scanf(\"%d\", &n) != 1 || n < 2) return 1;\n    int prime = 1;\n    for (int i = 2; i <= (int)sqrt((double)n); i++) {\n        if (n % i == 0) { prime = 0; break; }\n    }\n    printf(\"%d %s素数\\n\", n, prime ? \"是\" : \"不是\");\n    return 0;\n}"
+            }
+          ],
+          "exercises": [
+            {
+              "prompt": "用 for 打印 1-100 中所有能被 3 整除但不能被 5 整除的数，每行 5 个。",
+              "hint": "用一个计数器控制换行：if (++count % 5 == 0) printf(\"\\n\");",
+              "answer": "for (int i=1;i<=100;i++) if (i%3==0 && i%5!=0) { printf(\"%3d\", i); if (++c%5==0) printf(\"\\n\"); }"
+            },
+            {
+              "prompt": "把上题改成 while 实现，对比两种写法，说明哪种更不容易写错。",
+              "hint": "注意 while 版本要把 i++ 放在自己该在的位置。",
+              "answer": "while 版本需要手动维护 i 的递增和 count，容易漏写导致死循环；for 把三段控制集中，边界一眼可见，更不容易错。"
+            }
+          ],
+          "acceptance": "能说出三种循环各自适用场景；给一个嵌套循环能判断 break 会跳到哪一层。"
+        },
+        {
+          "slug": "c02-04-loop-pitfalls",
+          "ordinal": 4,
+          "title": "循环的三类经典错误与排查",
+          "est_minutes": 45,
+          "content_version": "v1",
+          "goals": [
+            "能识别边界差一、死循环、循环变量用错三类问题",
+            "掌握「代入起始值/边界值/边界±1」的验算方法",
+            "能按固定套路定位循环 bug"
+          ],
+          "key_points": [
+            "数组遍历用 i < n，用 i <= n 几乎必然越界",
+            "死循环四大来源：变量没变、方向反了、浮点等值判断、while 后误加分号",
+            "求和初值 0，求积初值 1，求最大初值取首元素",
+            "内层与外层不能用同名循环变量（遮蔽）",
+            "调试循环：打印前几次迭代的变量值最快定位"
+          ],
+          "examples": [
+            {
+              "title": "求最大值（初值必须取首元素）",
+              "runnable": true,
+              "code": "#include <stdio.h>\n\nint main(void) {\n    int a[] = {-5, -2, -9, -1};\n    int n = sizeof(a) / sizeof(a[0]);\n    int max = a[0];              // 不能写 0\n    for (int i = 1; i < n; i++)\n        if (a[i] > max) max = a[i];\n    printf(\"max = %d\\n\", max);   // -1\n    return 0;\n}"
+            }
+          ],
+          "exercises": [
+            {
+              "prompt": "下面这段代码想求 1 到 100 的和，找出错误：int s=0; for(int i=1;i<100;i++) s+=i;",
+              "hint": "代入 100 看它进不进循环。",
+              "answer": "条件是 i<100，i 到 99 就停，漏了 100。应改为 i<=100，或 <101。正确结果是 5050，原代码得 4950。"
+            },
+            {
+              "prompt": "写一段会死循环的代码，然后用「打印前 10 次变量值」的办法定位问题所在。",
+              "hint": "可以用 if (++guard < 10) printf(...) 限制输出次数。",
+              "answer": "例如 while (i<10) { printf(\"%d\",i); } 缺 i++。加打印后看到 i 一直是 0 不变，立刻定位到忘记递增。"
+            }
+          ],
+          "acceptance": "能在 1 分钟内看出一段循环的边界错误；能说出求最大值时初值取 0 会在什么输入下出错。"
+        }
+      ]
+    },
+    {
+      "slug": "ch03-function-array",
+      "ordinal": 3,
+      "title": "函数与数组",
+      "summary": "把逻辑切块，把数据排成排。这一章解决「代码越写越长」和「怎么处理一批数据」两个问题。",
+      "sections": [
+        {
+          "slug": "c03-01-functions",
+          "ordinal": 1,
+          "title": "函数：定义、参数与返回值",
+          "est_minutes": 55,
+          "content_version": "v1",
+          "goals": [
+            "能独立写出带参数和返回值的函数，并知道何时需要提前声明",
+            "能解释按值传递的含义，知道为什么函数改不了调用者的变量",
+            "能通过指针参数让函数带回多个结果"
+          ],
+          "key_points": [
+            "函数四要素：返回类型、函数名、参数列表、return",
+            "定义在调用之后必须先声明原型，否则隐式声明报错",
+            "C 按值传递，函数拿到的是副本，改副本不影响原件",
+            "要改调用者的变量，必须传地址并用 *解引用",
+            "非 void 函数的每条分支都要 return，否则返回值不确定"
+          ],
+          "examples": [
+            {
+              "title": "把素数判断提成函数",
+              "runnable": true,
+              "code": "#include <stdio.h>\n#include <math.h>\n\nint is_prime(int n) {\n    if (n < 2) return 0;\n    for (int i = 2; i <= (int)sqrt((double)n); i++)\n        if (n % i == 0) return 0;\n    return 1;\n}\n\nint main(void) {\n    for (int n = 2; n <= 30; n++)\n        if (is_prime(n)) printf(\"%d \", n);\n    printf(\"\\n\");\n    return 0;\n}"
+            }
+          ],
+          "exercises": [
+            {
+              "prompt": "写函数 int max_of(int a, int b)，返回较大的那个，并在 main 里调用验证。",
+              "hint": "可以用三元运算 return a > b ? a : b;",
+              "answer": "int max_of(int a,int b){ return a>b?a:b; } 调用 printf(\"%d\", max_of(3,7)) 应输出 7。"
+            },
+            {
+              "prompt": "写函数同时算出两个整数的商和余数，用指针参数带回，除数为 0 时返回 0 表示失败。",
+              "hint": "返回 int 表示成功与否，商和余数通过 int* 参数写回。",
+              "answer": "int divide(int a,int b,int*q,int*r){ if(b==0) return 0; *q=a/b; *r=a%b; return 1; }"
+            }
+          ],
+          "acceptance": "能手写 swap 函数并解释为什么不用指针就无效；能给一个漏 return 的函数指出问题。"
+        },
+        {
+          "slug": "c03-02-scope",
+          "ordinal": 2,
+          "title": "作用域与生命周期",
+          "est_minutes": 45,
+          "content_version": "v1",
+          "goals": [
+            "能分清局部、全局、静态局部三类变量的作用域与生命周期",
+            "知道局部变量不会自动清零，全局和 static 会",
+            "能识别返回局部变量地址这类错误"
+          ],
+          "key_points": [
+            "局部变量作用域到所在代码块结束，生命周期到函数返回",
+            "全局变量全程有效且自动为 0，但任何函数都能改，要克制使用",
+            "static 局部变量只初始化一次，值跨调用保留",
+            "栈上局部变量内容是垃圾值，必须手动初始化",
+            "返回局部变量的地址是未定义行为，应改为传入缓冲区"
+          ],
+          "examples": [
+            {
+              "title": "三种变量的生命周期对比",
+              "runnable": true,
+              "code": "#include <stdio.h>\n\nint g_total = 0;\n\nvoid add(int s) {\n    int local = s * 2;\n    static int calls = 0;\n    calls++;\n    g_total += local;\n    printf(\"第 %d 次 +%d 累计 %d\\n\", calls, local, g_total);\n}\n\nint main(void) {\n    add(10); add(20);\n    return 0;\n}"
+            }
+          ],
+          "exercises": [
+            {
+              "prompt": "写函数统计自己被调用了多少次，用 static 局部变量实现。",
+              "hint": "static int count = 0; count++; return count;",
+              "answer": "int hit(void){ static int c=0; return ++c; } 连续调用三次返回 1,2,3。"
+            },
+            {
+              "prompt": "下面代码有什么问题：int *make(void){ int x=5; return &x; }",
+              "hint": "想想函数返回后 x 还在不在。",
+              "answer": "x 在栈上，函数返回后空间被回收，返回的指针指向已失效内存，使用它是未定义行为。应改为让调用者传缓冲区，或用 malloc。"
+            }
+          ],
+          "acceptance": "能画出局部/全局/static 三类变量的生命周期；能指出返回局部变量地址的代码并给出两种修法。"
+        },
+        {
+          "slug": "c03-03-arrays",
+          "ordinal": 3,
+          "title": "数组：下标、遍历与越界",
+          "est_minutes": 50,
+          "content_version": "v1",
+          "goals": [
+            "能正确声明、初始化、遍历一维与二维数组",
+            "理解下标从 0 开始、长度固定、越界不报错三件事",
+            "能用 sizeof 在同一作用域内算长度，并知道它在函数内失效"
+          ],
+          "key_points": [
+            "长度 n 的数组合法下标是 0..n-1，最大下标是 n-1",
+            "C 不做越界检查，越界写会静默改坏别的变量",
+            "int a[5] = {0} 是全零的常用写法",
+            "sizeof(a)/sizeof(a[0]) 只在数组本作用域有效",
+            "字符串是以 \\0 结尾的字符数组，scanf 读字符串必须限宽"
+          ],
+          "examples": [
+            {
+              "title": "成绩统计：和、最大、最小",
+              "runnable": true,
+              "code": "#include <stdio.h>\n\nint main(void) {\n    int s[5] = {88, 92, 76, 95, 61};\n    int n = sizeof(s) / sizeof(s[0]);\n    int sum = 0, max = s[0], min = s[0];\n    for (int i = 0; i < n; i++) {\n        sum += s[i];\n        if (s[i] > max) max = s[i];\n        if (s[i] < min) min = s[i];\n    }\n    printf(\"avg %.2f max %d min %d\\n\", (double)sum / n, max, min);\n    return 0;\n}"
+            }
+          ],
+          "exercises": [
+            {
+              "prompt": "读 10 个整数，倒序输出。",
+              "hint": "先存入数组，再从 n-1 遍历到 0。",
+              "answer": "for (int i=9;i>=0;i--) printf(\"%d \", a[i]);"
+            },
+            {
+              "prompt": "写一段代码故意越界写，观察是否崩溃、哪个变量的值变了，并解释为什么没报错。",
+              "hint": "在数组后面再声明一个变量，越界一位写它。",
+              "answer": "越界写不会触发任何检查，会写到相邻内存。若正好覆盖后面的变量，该变量值改变，程序仍正常运行，因此极难排查。"
+            }
+          ],
+          "acceptance": "能默写数组求和/求最大/倒序输出；能解释为什么 sizeof 在函数内算不出数组长度。"
+        },
+        {
+          "slug": "c03-04-search-sort",
+          "ordinal": 4,
+          "title": "数组与函数：查找与排序",
+          "est_minutes": 60,
+          "content_version": "v1",
+          "goals": [
+            "能实现顺序查找与二分查找，并说清各自适用条件",
+            "能写出冒泡排序并理解优化点",
+            "知道数组传参后退化成指针，必须额外传长度"
+          ],
+          "key_points": [
+            "数组作参数会退化成指针，函数内 sizeof 得到的是指针大小",
+            "查找函数用 -1 表示未找到，调用方必须检查返回值",
+            "二分查找要求数组有序，循环条件用 low <= high",
+            "mid 用 low + (high-low)/2 避免整数溢出",
+            "冒泡内层上界 n-1-i，加 swapped 可提前退出"
+          ],
+          "examples": [
+            {
+              "title": "冒泡排序 + 二分查找",
+              "runnable": true,
+              "code": "#include <stdio.h>\n\nvoid bubble(int a[], int n) {\n    for (int i = 0; i < n - 1; i++) {\n        int sw = 0;\n        for (int j = 0; j < n - 1 - i; j++)\n            if (a[j] > a[j+1]) { int t=a[j]; a[j]=a[j+1]; a[j+1]=t; sw=1; }\n        if (!sw) break;\n    }\n}\n\nint bsearch_(int a[], int n, int x) {\n    int lo = 0, hi = n - 1;\n    while (lo <= hi) {\n        int mid = lo + (hi - lo) / 2;\n        if (a[mid] == x) return mid;\n        if (a[mid] < x) lo = mid + 1; else hi = mid - 1;\n    }\n    return -1;\n}\n\nint main(void) {\n    int a[] = {42, 7, 19, 88, 3};\n    int n = sizeof(a)/sizeof(a[0]);\n    bubble(a, n);\n    printf(\"idx of 19: %d\\n\", bsearch_(a, n, 19));\n    return 0;\n}"
+            }
+          ],
+          "exercises": [
+            {
+              "prompt": "实现顺序查找，返回下标或 -1，并在 main 里对「存在」和「不存在」两种情况各测一次。",
+              "hint": "找到立刻 return i，循环结束还没找到就 return -1。",
+              "answer": "int find(int a[],int n,int x){ for(int i=0;i<n;i++) if(a[i]==x) return i; return -1; }"
+            },
+            {
+              "prompt": "把二分的 mid 改成 (low+high)/2，思考在什么情况下会出错。",
+              "hint": "想想 int 的最大值。",
+              "answer": "当 low 和 high 都接近 INT_MAX/2 时，low+high 会整数溢出变成负数，mid 变成负下标，导致越界读。数组极长时才会暴露。"
+            }
+          ],
+          "acceptance": "能默写二分查找且边界（空数组、单元素、首尾元素）全对；能说出二分为什么要求有序。"
+        }
+      ]
+    },
+    {
+      "slug": "ch04-pointer-struct",
+      "ordinal": 4,
+      "title": "指针、结构体与链表",
+      "summary": "C 的分水岭。指针讲透，结构体把不同类型打包，链表把两者合起来——这也是她手上那条链表的理论补全。",
+      "sections": [
+        {
+          "slug": "c04-01-pointers",
+          "ordinal": 1,
+          "title": "指针：地址、解引用与传址",
+          "est_minutes": 60,
+          "content_version": "v1",
+          "goals": [
+            "能说清指针是「存地址的变量」，会取地址和解引用",
+            "能解释为什么函数改不了调用者的变量，以及指针如何解决",
+            "养成指针初始化为 NULL、解引用前检查的习惯"
+          ],
+          "key_points": [
+            "& 取地址，* 解引用，int *p 读作「p 是指针，指向 int」",
+            "NULL 表示不指向任何东西，野指针值不确定最危险",
+            "值传递传副本，要改变量必须传地址再解引用",
+            "指针类型决定解引用读几个字节、怎么解释",
+            "函数返回多值：额外结果用指针参数带回"
+          ],
+          "examples": [
+            {
+              "title": "swap：指针的入门必修",
+              "runnable": true,
+              "code": "#include <stdio.h>\n\nvoid swap(int *a, int *b) {\n    int t = *a; *a = *b; *b = t;\n}\n\nint main(void) {\n    int x = 1, y = 2;\n    swap(&x, &y);\n    printf(\"%d %d\\n\", x, y);   // 2 1\n    return 0;\n}"
+            }
+          ],
+          "exercises": [
+            {
+              "prompt": "写 swap 的两个版本（传值、传址），分别调用并打印结果，解释差异。",
+              "hint": "传值版本改的是副本。",
+              "answer": "传值版调用后 x、y 不变；传址版交换成功。因为传值传递的是副本，传址传递的是地址，解引用后改的是原件。"
+            },
+            {
+              "prompt": "写函数 divide(a, b, &q, &r) 同时带回商和余数，除零返回 0。",
+              "hint": "返回值表示成功与否。",
+              "answer": "int divide(int a,int b,int*q,int*r){ if(!b) return 0; *q=a/b; *r=a%b; return 1; }"
+            }
+          ],
+          "acceptance": "能解释 *p 和 &a 各做什么；能说明为什么 swap 不传指针就无效。"
+        },
+        {
+          "slug": "c04-02-pointer-array-string",
+          "ordinal": 2,
+          "title": "指针与数组、字符串",
+          "est_minutes": 55,
+          "content_version": "v1",
+          "goals": [
+            "理解数组名退化成指针的规则与两个例外（sizeof、&）",
+            "能说清 char *p = \"abc\" 与 char a[] = \"abc\" 的区别",
+            "能用指针算术遍历数组和字符串"
+          ],
+          "key_points": [
+            "表达式里数组名等价于 &a[0]，但 sizeof 和 & 时保持数组身份",
+            "p + 1 前进 sizeof(*p) 字节，不是 1 字节",
+            "字符串常量在只读区，char *p=\"abc\" 后写 p[0] 会崩",
+            "指针相减得到元素个数，不是字节数",
+            "只读参数加 const，既是承诺也是文档"
+          ],
+          "examples": [
+            {
+              "title": "自己实现 strlen",
+              "runnable": true,
+              "code": "#include <stdio.h>\n#include <stddef.h>\n\nsize_t my_strlen(const char *s) {\n    const char *p = s;\n    while (*p) p++;\n    return (size_t)(p - s);\n}\n\nint main(void) {\n    char buf[] = \"hello, c\";\n    printf(\"%zu\\n\", my_strlen(buf));\n    return 0;\n}"
+            }
+          ],
+          "exercises": [
+            {
+              "prompt": "用指针遍历数组求所有元素之和，函数签名用 int sum(int *begin, int *end)。",
+              "hint": "半开区间，p != end 时继续。",
+              "answer": "int sum(int*b,int*e){ int s=0; for(int*p=b;p!=e;p++) s+=*p; return s; } 调用 sum(a, a+n)。"
+            },
+            {
+              "prompt": "写 char *p = \"abc\"; p[0]='x'; 运行看结果，解释为什么，并给出正确写法。",
+              "hint": "字符串常量在只读段。",
+              "answer": "通常段错误。因为字符串常量分配在只读内存。正确写法：char buf[] = \"abc\"; buf[0]='x';"
+            }
+          ],
+          "acceptance": "能说出数组名在什么情况下不等于指针；能解释为什么改字符串常量会崩。"
+        },
+        {
+          "slug": "c04-03-struct",
+          "ordinal": 3,
+          "title": "结构体：把不同类型打包",
+          "est_minutes": 55,
+          "content_version": "v1",
+          "goals": [
+            "能定义并使用结构体、结构体数组、结构体指针",
+            "能正确用 . 和 -> 访问成员，知道为什么需要括号",
+            "知道结构体传参应传地址并加 const"
+          ],
+          "key_points": [
+            "typedef struct { ... } T; 让类型名省掉 struct 关键字",
+            "字符数组成员不能用 = 赋值，必须 strcpy",
+            "p->id 等价于 (*p).id，括号不能少",
+            "结构体可以整体赋值，数组不行",
+            "结构体大小可能因内存对齐大于成员之和"
+          ],
+          "examples": [
+            {
+              "title": "按成绩降序排列学生",
+              "runnable": true,
+              "code": "#include <stdio.h>\n\ntypedef struct { int id; char name[32]; double score; } Student;\n\nint main(void) {\n    Student a[] = {{1001,\"宁雪\",88.5},{1002,\"李雷\",92.0},{1003,\"韩梅\",76.5}};\n    int n = sizeof(a)/sizeof(a[0]);\n    for (int i=0;i<n-1;i++)\n        for (int j=0;j<n-1-i;j++)\n            if (a[j].score < a[j+1].score) { Student t=a[j]; a[j]=a[j+1]; a[j+1]=t; }\n    for (int i=0;i<n;i++) printf(\"%d %s %.1f\\n\", a[i].id, a[i].name, a[i].score);\n    return 0;\n}"
+            }
+          ],
+          "exercises": [
+            {
+              "prompt": "定义「日期」结构体（年/月/日）和「学生」结构体（含生日），打印某学生的生日。",
+              "hint": "嵌套成员用点号逐层访问。",
+              "answer": "typedef struct{int y,m,d;} Date; typedef struct{int id; Date birth;} Student; printf(\"%d-%02d-%02d\", s.birth.y, s.birth.m, s.birth.d);"
+            },
+            {
+              "prompt": "写函数按 id 查找学生，返回指针，找不到返回 NULL。",
+              "hint": "返回指针而不是下标，调用方要检查 NULL。",
+              "answer": "Student* find(Student a[],int n,int id){ for(int i=0;i<n;i++) if(a[i].id==id) return &a[i]; return NULL; }"
+            }
+          ],
+          "acceptance": "能手写结构体定义、数组初始化、按成员排序；能说清 -> 和 . 的区别。"
+        },
+        {
+          "slug": "c04-04-linked-list",
+          "ordinal": 4,
+          "title": "单向链表：建立、遍历、插入、删除",
+          "est_minutes": 70,
+          "content_version": "v1",
+          "goals": [
+            "能定义节点结构并建立一条链表",
+            "能正确实现头插、尾插、遍历、按值删除",
+            "能说清插入顺序与释放顺序为什么不能反"
+          ],
+          "key_points": [
+            "next 的类型必须写 struct Node *，不能用 typedef 名",
+            "头指针为 NULL 表示空链表，所有操作都要特判",
+            "头插后必须返回新头，调用方要 head = push_front(head, x)",
+            "插入顺序：先 p->next = cur->next，再 cur->next = p",
+            "删除顺序：先摘链 cur->next = victim->next，再 free(victim)",
+            "释放整表要先存 next 再 free"
+          ],
+          "examples": [
+            {
+              "title": "完整可跑的链表（建、打、释放）",
+              "runnable": true,
+              "code": "#include <stdio.h>\n#include <stdlib.h>\n\ntypedef struct Node { int data; struct Node *next; } Node;\n\nNode *push_back(Node *head, int v) {\n    Node *p = malloc(sizeof(Node));\n    if (!p) return head;\n    p->data = v; p->next = NULL;\n    if (!head) return p;\n    Node *cur = head;\n    while (cur->next) cur = cur->next;\n    cur->next = p;\n    return head;\n}\n\nvoid show(Node *h) { for (Node *p=h;p;p=p->next) printf(\"%d -> \", p->data); printf(\"NULL\\n\"); }\n\nvoid free_all(Node *h) { while (h) { Node *n=h->next; free(h); h=n; } }\n\nint main(void) {\n    Node *head = NULL;\n    for (int i=1;i<=5;i++) head = push_back(head, i);\n    show(head);\n    free_all(head);\n    return 0;\n}"
+            }
+          ],
+          "exercises": [
+            {
+              "prompt": "实现 push_front 并在 main 里插入 3 个节点，打印确认顺序是倒的。",
+              "hint": "头插每次都成为新头，所以顺序与插入顺序相反。",
+              "answer": "Node*p=malloc(sizeof(Node)); p->data=v; p->next=head; return p; 依次插入 1,2,3 后打印得 3 -> 2 -> 1 -> NULL。"
+            },
+            {
+              "prompt": "实现按值删除，覆盖三种情况：删除头节点、删除中间节点、值不存在。",
+              "hint": "删头要特判并返回新头；中间要先找前驱。",
+              "answer": "头：Node*n=head->next; free(head); return n; 中间：while(cur->next && cur->next->data!=v) cur=cur->next; 找到后 victim=cur->next; cur->next=victim->next; free(victim)。"
+            }
+          ],
+          "acceptance": "能手写一条完整链表（建、遍历、删一个、全部释放）且无内存泄漏；能说出插入时两条语句顺序反了会怎样。"
+        }
+      ]
+    }
+  ]
+}

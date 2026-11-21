@@ -33,3 +33,6 @@ next-env.d.ts
 /scripts/backup/
 /scripts/format/
 /scripts/_show.txt
+
+# Supabase 数据备份（含私密笔记原文，只留在本地）
+/backups/
