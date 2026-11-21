@@ -10,10 +10,20 @@ import { configSource, getServerConfig } from "@/lib/server-config";
 
 export type Channel = "unyra" | "deepseek" | "none";
 
+export type Usage = {
+  /** 输入 token 总数（含缓存命中部分） */
+  input: number;
+  /** 输出 token */
+  output: number;
+  /** 其中命中前缀缓存的输入 token（按命中价计费） */
+  cachedInput: number;
+};
+
 export type ChatResult = {
   content: string;
   model: string;
   channel: Channel;
+  usage?: Usage;
 };
 
 const DEEPSEEK_BASE = (process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com").replace(/\/+$/, "");
@@ -64,11 +74,23 @@ async function deepseekChat(
   const data = (await res.json()) as {
     model?: string;
     choices?: { message?: { content?: string } }[];
+    usage?: {
+      prompt_tokens?: number;
+      completion_tokens?: number;
+      prompt_cache_hit_tokens?: number;
+    };
   };
   return {
     content: data.choices?.[0]?.message?.content ?? "",
     model: data.model ?? model,
     channel: "deepseek",
+    usage: data.usage
+      ? {
+          input: data.usage.prompt_tokens ?? 0,
+          output: data.usage.completion_tokens ?? 0,
+          cachedInput: data.usage.prompt_cache_hit_tokens ?? 0,
+        }
+      : undefined,
   };
 }
 

@@ -136,6 +136,7 @@ export async function POST(req: NextRequest) {
       hits: result.hits.length,
       bestCoverage: Number(result.bestCoverage.toFixed(2)),
       vectorUsed: !result.vectorSkipped,
+      usage: result.usage,
     },
   });
 }

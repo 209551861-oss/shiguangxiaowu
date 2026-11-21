@@ -9,7 +9,7 @@
  */
 
 import type { createClient } from "@/lib/supabase/server";
-import { chat, type Channel } from "@/lib/ai";
+import { chat, type Channel, type Usage } from "@/lib/ai";
 import { stripMarkdown } from "./text";
 import { MIN_COVERAGE, retrieve, type Hit } from "./retrieve";
 import type { Citation } from "@/lib/services/library";
@@ -29,6 +29,8 @@ export type AskResult = {
   hits: Hit[];
   bestCoverage: number;
   vectorSkipped: boolean;
+  /** 本次实际消耗的 token（拒答时为 null，因为没调模型） */
+  usage: Usage | null;
 };
 
 const SYSTEM = `你是宁雪的私人学习助教。你只能依据下面给出的【资料】回答，不允许使用资料以外的知识，不允许编造。
@@ -111,6 +113,7 @@ export async function answerQuestion(
       hits: [],
       bestCoverage: r.bestCoverage,
       vectorSkipped: r.vectorSkipped,
+      usage: null,
     };
   }
 
@@ -136,6 +139,7 @@ export async function answerQuestion(
       hits: r.hits,
       bestCoverage: r.bestCoverage,
       vectorSkipped: r.vectorSkipped,
+      usage: res.usage ?? null,
     };
   }
 
@@ -152,5 +156,6 @@ export async function answerQuestion(
     hits: r.hits,
     bestCoverage: r.bestCoverage,
     vectorSkipped: r.vectorSkipped,
+    usage: res.usage ?? null,
   };
 }
