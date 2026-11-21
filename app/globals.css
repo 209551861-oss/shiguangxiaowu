@@ -156,3 +156,13 @@
   text-align: left;
 }
 .prose-shiguang th { background: rgba(147, 168, 102, 0.12); color: var(--forest); }
+
+/* 引用定位高亮：点回答里的 [S1] 时，正文这一段会被包进 <mark> */
+.prose-shiguang mark.cite-hl {
+  background: rgba(201, 233, 127, 0.55);
+  color: inherit;
+  border-radius: 3px;
+  box-shadow: 0 0 0 3px rgba(201, 233, 127, 0.35);
+  padding: 0 1px;
+  transition: background 0.3s ease;
+}

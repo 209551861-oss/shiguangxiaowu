@@ -1,74 +1,107 @@
 import Link from "next/link";
-import { getPublicItem } from "@/lib/services/content";
+import { getDocument, getLatestSession, getRecentQuestions } from "@/lib/services/library";
 import { formatDate } from "@/utils/format";
-import EmptyState from "@/components/content/EmptyState";
-import GlassCard from "@/components/ui/GlassCard";
-import type { Resource } from "@/types";
+import DocReader from "@/components/library/DocReader";
+import AskPanel from "@/components/library/AskPanel";
 
-export default async function ResourceDetail({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export const dynamic = "force-dynamic";
+
+const SOURCE_LABEL: Record<string, string> = {
+  unyra: "归一",
+  upload: "上传",
+  manual: "手写",
+};
+
+export default async function DocumentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const r = await getPublicItem<Resource>(
-    "resources",
-    id,
-    "id,title,url,description,file_type,created_at"
-  );
+  const doc = await getDocument(id);
 
-  if (!r) {
+  if (!doc) {
     return (
-      <div className="mx-auto max-w-[760px] px-5 pb-12 pt-20">
-        <EmptyState
-          text="这条资料不存在，或已被设为私密。"
-          hint="返回资料库看看其他收藏吧。"
-        />
-        <div className="mt-6 text-center">
-          <Link href="/library" className="text-sm text-leaf hover:underline">
-            ← 返回资料库
+      <div className="mx-auto max-w-[760px] px-5 pb-16 pt-24">
+        <div className="rounded-2xl border border-line bg-paper px-8 py-12 text-center">
+          <p className="font-serif text-xl text-forest">这份资料不存在，或不属于你</p>
+          <p className="mt-3 text-sm leading-7 text-muted">可能已经归档，或者还没登录。</p>
+          <Link
+            href="/library"
+            className="mt-6 inline-flex rounded-full bg-forest px-6 py-2.5 text-sm text-paper transition hover:bg-ink"
+          >
+            返回资料库
           </Link>
         </div>
       </div>
     );
   }
 
+  const [session, asked] = await Promise.all([getLatestSession(id), getRecentQuestions(id)]);
+
   return (
-    <article className="mx-auto max-w-[760px] px-5 pb-12 pt-20">
-      <Link href="/library" className="text-sm text-muted hover:text-forest">
+    <div className="mx-auto max-w-[820px] px-5 pb-20 pt-24">
+      <Link href="/library" className="text-sm text-muted transition hover:text-forest">
         ← 资料库
       </Link>
-      <h1 className="mt-4 font-serif text-4xl leading-tight text-forest">
-        {r.title}
-      </h1>
-      <div className="mt-2 flex items-center gap-3 text-sm text-muted">
-        <span>{formatDate(r.created_at)}</span>
-        {r.file_type && (
-          <span className="rounded-pill bg-leaf/12 px-2.5 py-0.5 text-[11px] text-leaf">
-            {r.file_type}
+
+      <header className="mt-4 border-b border-line pb-6">
+        <h1 className="font-serif text-3xl leading-snug text-forest">{doc.title}</h1>
+        <p className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-muted">
+          <span className="rounded-pill bg-leaf/12 px-2 py-0.5 text-leaf">
+            {SOURCE_LABEL[doc.source] ?? doc.source}
+            {doc.goal_title ? ` · ${doc.goal_title}` : ""}
           </span>
-        )}
-      </div>
-
-      {r.description && (
-        <p className="mt-6 whitespace-pre-wrap leading-[2] text-ink">
-          {r.description}
+          <span>{doc.chars.toLocaleString()} 字</span>
+          <span>同步于 {formatDate(doc.source_updated_at ?? doc.updated_at)}</span>
         </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <a
+            href="#ask"
+            className="rounded-full border border-line px-4 py-1.5 text-xs text-ink transition hover:border-forest hover:text-forest"
+          >
+            问这份资料 ↓
+          </a>
+        </div>
+      </header>
+
+      {asked.length > 0 && (
+        <div className="mt-5 rounded-xl border border-line bg-mist/50 px-4 py-3">
+          <p className="text-[11px] uppercase tracking-[0.15em] text-muted">被问过</p>
+          <ul className="mt-2 space-y-1">
+            {asked.slice(0, 5).map((q, i) => (
+              <li key={i} className="truncate text-[13px] leading-6 text-muted">
+                · {q}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
-      {r.url && (
-        <GlassCard className="mt-6 flex items-center justify-between gap-4 p-5">
-          <span className="truncate text-sm text-muted">{r.url}</span>
-          <a
-            href={r.url}
-            target="_blank"
-            rel="noreferrer"
-            className="shrink-0 rounded-pill bg-forest px-5 py-2 text-sm text-white transition hover:-translate-y-0.5"
-          >
-            访问链接 →
-          </a>
-        </GlassCard>
-      )}
-    </article>
+      <article className="mt-8">
+        {doc.body_md ? (
+          <DocReader markdown={doc.body_md} />
+        ) : (
+          <p className="rounded-xl border border-dashed border-line px-5 py-6 text-sm text-muted">
+            这份资料没有存正文（早期数据）。重新同步一次会把正文补上。
+          </p>
+        )}
+      </article>
+
+      <AskPanel
+        documentId={doc.id}
+        initialSession={
+          session
+            ? {
+                id: session.id,
+                turns: session.turns.map((t) => ({
+                  id: t.id,
+                  role: t.role,
+                  content: t.content,
+                  citations: t.citations,
+                  model: t.model,
+                  channel: t.channel,
+                })),
+              }
+            : null
+        }
+      />
+    </div>
   );
 }
