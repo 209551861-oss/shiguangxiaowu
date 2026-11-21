@@ -9,6 +9,7 @@ export type Module = {
 export const NAV_LINKS: NavLink[] = [
   { href: "/", label: "首页" },
   { href: "/notes", label: "学习档案" },
+  { href: "/book", label: "教材" },
   { href: "/library", label: "资料库" },
   { href: "/studio", label: "画室" },
   { href: "/atelier", label: "创作工坊" },
