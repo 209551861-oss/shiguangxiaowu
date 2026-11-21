@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { hasDeepSeek } from "@/lib/ai";
+import { deepseekKeySource, hasDeepSeek } from "@/lib/ai";
 import { bridgeHealth, bridgeModels } from "@/lib/unyra";
 
 /**
@@ -43,7 +43,7 @@ export async function GET() {
     }
   }
 
-  if (hasDeepSeek()) {
+  if (await hasDeepSeek()) {
     models.push({ id: "deepseek-chat", label: "DeepSeek Chat（云端）", channel: "deepseek" });
   }
 
@@ -55,5 +55,9 @@ export async function GET() {
       : null,
     defaultChannel: bridgeUp && models.some((m) => m.channel === "unyra") ? "unyra" : "deepseek",
     models,
+    diagnostics: {
+      keySource: await deepseekKeySource(),
+      hasServiceRole: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    },
   });
 }

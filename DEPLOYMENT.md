@@ -124,3 +124,17 @@ node scripts/sync-unyra.mjs --dry                    # 只看清单不推
 - 关键词腿：PGroonga 中文分词（本库已启用 3.2.5）
 - 语义腿：pgvector + bge-m3（1024 维），需要问题向量；云端算不了，所以线上只有关键词腿
 - 两条腿用 RRF 合并；召回覆盖度低于 0.34 直接拒答，不给猜测答案
+
+### 密钥也可以不写在 Vercel 里
+`app_config` 表（迁移 `0007`）是服务端私有配置，RLS 开启且无策略，anon / 登录用户都读不到（实测 anon 返回 403/401），只有 service role 能查。
+读取顺序：**环境变量 → app_config**。所以模型 key、推送密钥既可以填 Vercel 环境变量，也可以直接写进这张表，后者不用重新部署：
+
+```bash
+# 用 service_role key 直接写（本地跑，不要放进前端）
+curl -X POST "$SUPABASE_URL/rest/v1/app_config" \
+  -H "apikey: $SERVICE_ROLE_KEY" -H "Authorization: Bearer $SERVICE_ROLE_KEY" \
+  -H "content-type: application/json" -H "Prefer: resolution=merge-duplicates" \
+  -d '[{"key":"deepseek_api_key","value":"sk-..."}]'
+```
+
+已用的键名：`deepseek_api_key`、`unyra_ingest_secret`、`unyra_owner_user_id`。

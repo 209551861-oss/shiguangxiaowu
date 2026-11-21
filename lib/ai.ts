@@ -6,6 +6,7 @@
  */
 
 import { bridgeChat } from "@/lib/unyra";
+import { configSource, getServerConfig } from "@/lib/server-config";
 
 export type Channel = "unyra" | "deepseek" | "none";
 
@@ -16,15 +17,27 @@ export type ChatResult = {
 };
 
 const DEEPSEEK_BASE = (process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com").replace(/\/+$/, "");
-const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY || "";
 
 type Msg = { role: "system" | "user" | "assistant"; content: string };
+
+/**
+ * 取 DeepSeek key：环境变量优先，线上没配时从 app_config 表取。
+ * app_config 开了 RLS 且无策略，只有 service_role 读得到，浏览器拿不到。
+ */
+export async function resolveDeepSeekKey(): Promise<string> {
+  return getServerConfig("deepseek_api_key", "DEEPSEEK_API_KEY");
+}
+
+export async function deepseekKeySource(): Promise<"env" | "db" | "none"> {
+  return configSource("deepseek_api_key", "DEEPSEEK_API_KEY");
+}
 
 async function deepseekChat(
   messages: Msg[],
   opts: { model?: string; temperature?: number; maxTokens?: number }
 ): Promise<ChatResult> {
-  if (!DEEPSEEK_KEY) {
+  const key = await resolveDeepSeekKey();
+  if (!key) {
     throw new Error("no-channel");
   }
   const model = opts.model && !opts.model.startsWith("unyra:") ? opts.model : "deepseek-chat";
@@ -32,7 +45,7 @@ async function deepseekChat(
     method: "POST",
     headers: {
       "content-type": "application/json",
-      authorization: `Bearer ${DEEPSEEK_KEY}`,
+      authorization: `Bearer ${key}`,
     },
     body: JSON.stringify({
       model,
@@ -95,6 +108,6 @@ export async function chat(
   }
 }
 
-export function hasDeepSeek(): boolean {
-  return !!DEEPSEEK_KEY;
+export async function hasDeepSeek(): Promise<boolean> {
+  return !!(await resolveDeepSeekKey());
 }
