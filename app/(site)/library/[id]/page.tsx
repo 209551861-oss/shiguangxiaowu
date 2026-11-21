@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import { getDocument, getLatestSession, getRecentQuestions } from "@/lib/services/library";
 import { formatDate } from "@/utils/format";
 import DocReader from "@/components/library/DocReader";
@@ -14,6 +16,15 @@ const SOURCE_LABEL: Record<string, string> = {
 
 export default async function DocumentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // 未登录不区分"不存在/不是你的"，一律先去登录，登录后自动回到这一页
+  if (!user) redirect(`/dashboard/login?next=/library/${id}`);
+
   const doc = await getDocument(id);
 
   if (!doc) {
@@ -21,7 +32,7 @@ export default async function DocumentPage({ params }: { params: Promise<{ id: s
       <div className="mx-auto max-w-[760px] px-5 pb-16 pt-24">
         <div className="rounded-2xl border border-line bg-paper px-8 py-12 text-center">
           <p className="font-serif text-xl text-forest">这份资料不存在，或不属于你</p>
-          <p className="mt-3 text-sm leading-7 text-muted">可能已经归档，或者还没登录。</p>
+          <p className="mt-3 text-sm leading-7 text-muted">可能已经归档，或者这份资料不属于当前登录的账号。</p>
           <Link
             href="/library"
             className="mt-6 inline-flex rounded-full bg-forest px-6 py-2.5 text-sm text-paper transition hover:bg-ink"

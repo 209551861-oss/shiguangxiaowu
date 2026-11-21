@@ -7,6 +7,14 @@ import { createClient } from "@/lib/supabase/client";
 
 type Mode = "login" | "register";
 
+/** 登录后回到来源页；只接受站内单斜杠路径，挡掉 //evil.com 这类开放重定向 */
+function nextPath(): string {
+  if (typeof window === "undefined") return "/dashboard";
+  const raw = new URLSearchParams(window.location.search).get("next");
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/dashboard";
+  return raw;
+}
+
 export default function LoginPage() {
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
@@ -32,7 +40,7 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
-      router.push("/dashboard");
+      router.push(nextPath());
       router.refresh();
       return;
     }
@@ -46,7 +54,7 @@ export default function LoginPage() {
     }
     if (data.session) {
       // 关闭了邮箱确认：直接登录
-      router.push("/dashboard");
+      router.push(nextPath());
       router.refresh();
     } else {
       setMsg("注册成功！请前往邮箱完成验证，随后即可登录。");

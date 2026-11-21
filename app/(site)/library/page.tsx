@@ -1,8 +1,11 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getLastSync, listDocuments } from "@/lib/services/library";
 import { formatDate } from "@/utils/format";
 import SyncButton from "@/components/library/SyncButton";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "资料库 · 拾光小屋",
@@ -33,6 +36,9 @@ export default async function LibraryPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // 未登录直接甩到登录页，不渲染任何资料库界面（避免"看一眼页面再点登录"的观感）
+  if (!user) redirect("/dashboard/login?next=/library");
 
   const [docs, lastSync] = await Promise.all([listDocuments(active), getLastSync()]);
   const chars = docs.reduce((n, d) => n + (d.chars || 0), 0);
@@ -83,20 +89,7 @@ export default async function LibraryPage({
         </div>
       )}
 
-      {!user ? (
-        <div className="mt-10 rounded-2xl border border-line bg-paper px-8 py-12 text-center">
-          <p className="font-serif text-xl text-forest">登录后才能看资料库</p>
-          <p className="mt-3 text-sm leading-7 text-muted">
-            资料和问答都是私人内容，需要先登录。
-          </p>
-          <Link
-            href="/dashboard/login"
-            className="mt-6 inline-flex rounded-full bg-forest px-6 py-2.5 text-sm text-paper transition hover:bg-ink"
-          >
-            去登录
-          </Link>
-        </div>
-      ) : docs.length === 0 ? (
+      {docs.length === 0 ? (
         <div className="mt-10 rounded-2xl border border-line bg-paper px-8 py-12 text-center">
           <p className="font-serif text-xl text-forest">还没有资料</p>
           <p className="mt-3 text-sm leading-7 text-muted">
