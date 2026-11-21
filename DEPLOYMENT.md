@@ -63,6 +63,19 @@
 
 > 三个都要加，且对 `Production` / `Preview` / `Development` 全选生效。
 
+**P2 资料库与问答再加 4 个**（不加会导致问答返回 503、线上推送资料 401）：
+
+| 变量名 | 说明 |
+|---|---|
+| `DEEPSEEK_API_KEY` | 云端模型通道。**线上唯一可用的模型通道**（Vercel 摸不到你本机的归一桥） |
+| `UNYRA_INGEST_SECRET` | 与本地 `.env.local` 同一个值，脚本推资料时的 HMAC 密钥 |
+| `UNYRA_OWNER_USER_ID` | 资料归属账号的 `auth.users.id` |
+| `UNYRA_BRIDGE_URL` | 可不填，默认 `http://127.0.0.1:4399`（线上必然连不上，会自动回退 DeepSeek） |
+
+- 改完环境变量**必须重新部署一次**（`Deployments` → `Redeploy`），否则运行中的实例读不到新值。
+- 查环境变量是否生效：`curl -X POST https://你的域名/api/library/ask -H 'content-type: application/json' -d '{"question":"测试"}'`，返回 401（未登录）说明接口在；登录后返回 `NO_CHANNEL` 说明 key 没配上。
+
+
 ### 第 4 步：部署
 回到 `Deployments` 点 `Redeploy`，或推送代码会自动部署。成功后 Vercel 给一个 `*.vercel.app` 临时域名。
 
@@ -82,3 +95,32 @@
 - **页面白屏、数据为空**：检查 Vercel 环境变量是否三个都填对；确认 Supabase 里已录入且 `visibility=public`。
 - **上传图片失败**：确认 Supabase 的 Storage 桶（artworks / gallery / articles / moments / private）已按 `supabase/migrations/0002_storage.sql` 建好。
 - **本地能跑、线上报错**：本地 `.env.local` 与线上环境变量是否一致；线上构建日志在 Vercel `Deployments` → 对应部署 → `Build Logs`。
+
+---
+
+## 五、资料库（P2）日常操作
+
+### 迁移数据库
+```bash
+PGPASSWORD='数据库密码' node scripts/migrate.mjs supabase/migrations/0004_library.sql
+PGPASSWORD='数据库密码' node scripts/migrate.mjs      # 跑全部未执行的
+```
+已执行的迁移记在 `public._migrations`，重复跑会自动跳过。
+
+### 把归一资料同步到线上
+线上站点在 Vercel，访问不到你本机的归一桥（`127.0.0.1:4399`），所以要**本机主动推**：
+```bash
+node scripts/sync-unyra.mjs                          # 推到 NEXT_PUBLIC_SITE_URL
+node scripts/sync-unyra.mjs --site https://www.xuexiaoge.cn
+node scripts/sync-unyra.mjs --dry                    # 只看清单不推
+```
+内容没变会返回 `内容未变，跳过`（幂等，不会重建分块、不碰学习记录）。
+
+### 本机开发时的「立即同步归一」按钮
+`npm run dev` 时服务端能连到桥，这个按钮直接可用，并且会顺带用 bge-m3 补向量。
+线上点它会明确报「连不上归一桥」——这是预期行为，用上面的脚本推。
+
+### 检索为什么是「两条腿」
+- 关键词腿：PGroonga 中文分词（本库已启用 3.2.5）
+- 语义腿：pgvector + bge-m3（1024 维），需要问题向量；云端算不了，所以线上只有关键词腿
+- 两条腿用 RRF 合并；召回覆盖度低于 0.34 直接拒答，不给猜测答案
