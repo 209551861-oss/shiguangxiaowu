@@ -45,12 +45,16 @@ export async function middleware(request: NextRequest) {
 
   const { pathname, search } = request.nextUrl;
   const isLogin = pathname === "/dashboard/login";
-  const isLibrary = pathname === "/library" || pathname.startsWith("/library/");
+  const isPrivate =
+    pathname === "/library" ||
+    pathname.startsWith("/library/") ||
+    pathname === "/recite" ||
+    pathname.startsWith("/recite/");
 
   if (!user && !isLogin) {
     const url = request.nextUrl.clone();
-    // 资料库是私人内容：跳登录并记住原地址，登录后自动回来
-    if (isLibrary) {
+    // 资料库与背诵板块都是私人内容：跳登录并记住原地址，登录后自动回来
+    if (isPrivate) {
       url.pathname = "/dashboard/login";
       url.search = `?next=${encodeURIComponent(pathname + search)}`;
     } else {
@@ -70,5 +74,11 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/library", "/library/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/library",
+    "/library/:path*",
+    "/recite",
+    "/recite/:path*",
+  ],
 };

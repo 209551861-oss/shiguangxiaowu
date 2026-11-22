@@ -1,16 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { NAV_LINKS } from "@/lib/constants";
+import { NAV_LINKS, type NavLink } from "@/lib/constants";
 
 export default function MobileNav({
   open,
   onClose,
+  extraLinks = [],
 }: {
   open: boolean;
   onClose: () => void;
+  extraLinks?: NavLink[];
 }) {
   if (!open) return null;
+  const links = [...NAV_LINKS, ...extraLinks];
 
   return (
     <div className="fixed inset-0 z-50 md:hidden">
@@ -22,7 +25,7 @@ export default function MobileNav({
             ✕
           </button>
         </div>
-        {NAV_LINKS.map((l) => (
+        {links.map((l) => (
           <Link
             key={l.href}
             href={l.href}

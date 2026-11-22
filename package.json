@@ -12,13 +12,24 @@
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.48.0",
+    "@tiptap/extension-image": "^3.35.0",
+    "@tiptap/extension-table": "^3.35.0",
+    "@tiptap/pm": "^3.35.0",
+    "@tiptap/react": "^3.35.0",
+    "@tiptap/starter-kit": "^3.35.0",
     "eslint-config-next": "^15.5.27",
+    "katex": "^0.19.1",
     "next": "^15.5.27",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-markdown": "^10.1.0",
+    "rehype-highlight": "^7.0.2",
+    "rehype-katex": "^7.0.1",
     "remark-breaks": "^4.0.0",
-    "remark-gfm": "^4.0.1"
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
+    "tiptap-markdown": "^0.9.0",
+    "ts-fsrs": "^5.4.2"
   },
   "devDependencies": {
     "@types/node": "^22.10.7",

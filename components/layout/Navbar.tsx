@@ -2,11 +2,18 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { NAV_LINKS } from "@/lib/constants";
+import { NAV_LINKS, type NavLink } from "@/lib/constants";
 import MobileNav from "./MobileNav";
 
-export default function Navbar({ siteName = "拾光小屋" }: { siteName?: string }) {
+export default function Navbar({
+  siteName = "拾光小屋",
+  extraLinks = [],
+}: {
+  siteName?: string;
+  extraLinks?: NavLink[];
+}) {
   const [open, setOpen] = useState(false);
+  const links = [...NAV_LINKS, ...extraLinks];
 
   return (
     <>
@@ -17,7 +24,7 @@ export default function Navbar({ siteName = "拾光小屋" }: { siteName?: strin
         </Link>
 
         <div className="hidden items-center gap-1 md:flex">
-          {NAV_LINKS.map((l) => (
+          {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
@@ -45,7 +52,7 @@ export default function Navbar({ siteName = "拾光小屋" }: { siteName?: strin
         </div>
       </nav>
 
-      <MobileNav open={open} onClose={() => setOpen(false)} />
+      <MobileNav open={open} onClose={() => setOpen(false)} extraLinks={extraLinks} />
     </>
   );
 }
