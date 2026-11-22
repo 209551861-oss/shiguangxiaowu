@@ -138,3 +138,33 @@ curl -X POST "$SUPABASE_URL/rest/v1/app_config" \
 ```
 
 已用的键名：`deepseek_api_key`、`unyra_ingest_secret`、`unyra_owner_user_id`。
+
+---
+
+## 六、背诵板块（私人知识库 + FSRS 间隔复习）
+
+### 一次性准备
+```bash
+PGPASSWORD='数据库密码' node scripts/migrate.mjs supabase/migrations/0008_recite.sql
+```
+`app_config` 里要有 `recite_owner_user_id`（只这个账号能进）。没配时任何人登录后都能进自己的空间；
+配了之后其他账号访问 `/recite` 直接 404。
+
+### 表与权限
+- `knowledge_item` / `review_unit` / `review_state` / `review_log` / `attachment` / `recite_settings`
+- 六表 RLS 一律 `owner_user_id = auth.uid()`；匿名角色已 revoke
+- `review_log` 只给 select / insert：历史只能追加，不能改删
+- 附件放 `private` 桶的 `recite/<uid>/` 下；下载走 `/api/recite/file/[id]`，
+  先按会话验归属再签 10 分钟地址（未登录 401 / 他人 403 / 不存在 404）
+
+### 复习规则
+- 调度用 ts-fsrs 6.x（FSRS-6），四档评价后间隔全由算法给出，代码里没有写死天数
+- 队列按**自然日**组织（时区取自 `recite_settings.timezone`，默认 Asia/Shanghai）：
+  逾期 = due < 今天 00:00；今日到期 = due < 明天 00:00；新卡 = 从未复习过
+- 新卡每日自动上限 10（可改、可关）；手动挑的不受此限
+- 全部到期项都会列出，不做硬截断；中途退出只保留已提交的记录
+- 关了「短期学习步骤」：否则新卡评分后 10 分钟又到期，一天内反复出现
+
+### 编辑器
+Markdown 是唯一真源，富文本只是视图，切换不另存 HTML。
+公式在富文本里以 `$...$` 源码显示，阅读态才排版；含 `|` 的公式建议直接在 Markdown 模式写。
